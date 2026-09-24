@@ -1,0 +1,14 @@
+name: Idea or feature
+description: Suggest a trick, park, feature or improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What is the idea?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it make the game better?

@@ -1,0 +1,32 @@
+name: Bug report
+description: Something in the game is broken or wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: park
+    attributes:
+      label: Park
+      placeholder: Market Street, Woodshed or Lab Campus
+  - type: dropdown
+    id: input
+    attributes:
+      label: How were you playing?
+      options:
+        - Controller
+        - Keyboard
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 140 on Windows 11
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
