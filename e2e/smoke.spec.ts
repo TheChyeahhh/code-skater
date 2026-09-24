@@ -4,7 +4,7 @@
 // an ollie onto a known rail, holds the grind over 2 s, lands and asserts the combo banked > 0; and
 // captures screenshots/menu.png, street-spawn.png, street-grind.png, woodshed-bowl.png, board-lab.png.
 // Any console error, page error, lost WebGL context or THREE.* warning fails the test.
-import { expect, test, type Page } from '@playwright/test';
+import { devices, expect, test, type Page } from '@playwright/test';
 import type { Vec3 } from '../src/core/types';
 
 function collectErrors(page: Page): string[] {
@@ -365,4 +365,29 @@ test('?autostart skips the gate and still reaches the menu', async ({ page }) =>
   await expect(page.locator('.start-gate')).toHaveCount(0);
   await expect(page.locator('.screen--mainMenu.is-active')).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('a phone gets the "needs a computer" notice, a desktop does not', async ({ browser, page }) => {
+  await page.goto('/');
+  await expect(page.getByText('Press any button to start')).toBeVisible();
+  await expect(page.locator('.phone-warning')).toHaveCount(0);
+
+  const phone = await browser.newContext({ ...devices['Pixel 7'] });
+  const mobile = await phone.newPage();
+  const errors = collectErrors(mobile);
+  await mobile.goto('/');
+  const note = mobile.locator('.phone-warning');
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('Code Skater needs a computer.');
+  // The whole message fits on screen.
+  const box = await note.boundingBox();
+  const width = mobile.viewportSize()?.width ?? 0;
+  expect(box && box.x >= 0 && box.x + box.width <= width).toBe(true);
+  await mobile.screenshot({ path: 'screenshots/phone-notice.png' });
+  // OK closes it, and that tap does not start the game behind it.
+  await note.getByRole('button', { name: 'OK' }).tap();
+  await expect(note).toHaveCount(0);
+  await expect(mobile.getByText('Press any button to start')).toBeVisible();
+  expect(errors).toEqual([]);
+  await phone.close();
 });

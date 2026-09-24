@@ -50,6 +50,31 @@ async function start(audioContext: AudioContext | null): Promise<void> {
   }
 }
 
+/**
+ * The game plays with a keyboard or a controller only, so a phone or tablet (no mouse or trackpad)
+ * is told so on first paint instead of reaching a run it cannot move in.
+ */
+function warnIfTouchOnly(): void {
+  if (window.matchMedia('(any-pointer: fine)').matches) return;
+  const note = document.createElement('div');
+  note.className = 'phone-warning';
+  note.setAttribute('role', 'alert');
+  const text = document.createElement('p');
+  const lead = document.createElement('strong');
+  lead.textContent = 'Code Skater needs a computer.';
+  text.append(lead, ' Play with a keyboard or a game controller. Phones and tablets are not supported yet.');
+  const ok = document.createElement('button');
+  ok.type = 'button';
+  ok.textContent = 'OK';
+  ok.addEventListener('click', () => note.remove());
+  // A tap on the notice must not also count as the start gate's "press any button".
+  note.addEventListener('pointerdown', (e) => e.stopPropagation());
+  note.append(text, ok);
+  document.body.append(note);
+}
+
+warnIfTouchOnly();
+
 if (new URLSearchParams(window.location.search).has('autostart')) {
   void start(null);
 } else {

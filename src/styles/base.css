@@ -130,8 +130,9 @@ body {
   display: none;
 }
 
-/* Software-GL notice (src/app/stage.ts warnIfSoftwareGl). */
-.gpu-warning {
+/* Software-GL notice (src/app/stage.ts warnIfSoftwareGl) and touch-only notice (src/main.ts warnIfTouchOnly). */
+.gpu-warning,
+.phone-warning {
   position: fixed;
   left: 50%;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
@@ -148,10 +149,17 @@ body {
   border-radius: 6px;
   font: 14px/1.4 var(--cs-font);
 }
-.gpu-warning p {
+/* Full width on a narrow screen: a fixed box at left 50% would otherwise wrap at half the viewport. */
+.phone-warning {
+  box-sizing: border-box;
+  width: max-content;
+}
+.gpu-warning p,
+.phone-warning p {
   margin: 0;
 }
-.gpu-warning button {
+.gpu-warning button,
+.phone-warning button {
   flex: none;
   padding: 6px 14px;
   background: var(--cs-accent);
@@ -161,7 +169,8 @@ body {
   font: 700 14px var(--cs-font);
   cursor: pointer;
 }
-.gpu-warning button:focus-visible {
+.gpu-warning button:focus-visible,
+.phone-warning button:focus-visible {
   outline: 2px solid var(--cs-fg);
   outline-offset: 2px;
 }
