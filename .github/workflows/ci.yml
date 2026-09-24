@@ -1,0 +1,37 @@
+# .github/workflows/ci.yml: checks for every pull request and every push to main.
+# Security: read-only token, no secrets, never pull_request_target, checkout without saved
+# credentials. Pull requests from new contributors wait for the maintainer's approval to run
+# (repository setting: Actions > Fork pull request workflows).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:parody
+      - run: npm run check:size

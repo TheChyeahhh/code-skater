@@ -1,0 +1,60 @@
+# .github/workflows/deploy.yml (integration): GitHub Pages deploy for CODE SKATER (SPEC §12,
+# REQ-DEP-02). On every push to main: install, typecheck, unit tests, parody build, the brand and
+# size gates, the production-build smoke test from a subpath, then publish dist/ to Pages.
+# One-time repo setting: Settings > Pages > Build and deployment > Source = "GitHub Actions".
+# Runs only on pushes to main (which only the maintainer can make) or by hand; never on pull requests.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: the build job only reads; only the deploy job may publish to Pages.
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Brand gate (no real names in the public build)
+        run: npm run check:parody
+      - name: Size gate (1500 KB gzip)
+        run: npm run check:size
+      - name: Production build from a subpath, clean console (e2e/static.spec.ts)
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --project=static
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
